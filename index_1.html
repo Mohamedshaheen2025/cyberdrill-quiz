@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive CyberDrill Quiz with Maturity Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Custom scrollbar for a cleaner look if content overflows */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        .maturity-level-1 { background-color: #fee2e2; color: #ef4444; } /* Red */
+        .maturity-level-2 { background-color: #ffedd5; color: #f97316; } /* Orange */
+        .maturity-level-3 { background-color: #fef9c3; color: #eab308; } /* Yellow */
+        .maturity-level-4 { background-color: #dcfce7; color: #22c55e; } /* Light Green */
+        .maturity-level-5 { background-color: #dbeafe; color: #3b82f6; } /* Blue */
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-5xl">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-gray-800">CyberDrill Scenario: Yes/No Quiz</h1>
+        <p class="text-center text-gray-600 mb-8">
+            Read each statement about the CyberDrill Ransomware Scenario and answer 'Yes' if it's true, or 'No' if it's false.
+        </p>
+
+        <div id="quiz-container" class="overflow-x-auto rounded-lg border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Statement</th>
+                        <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Your Answer</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Feedback</th>
+                    </tr>
+                </thead>
+                <tbody id="quiz-table-body" class="bg-white divide-y divide-gray-200">
+                    <!-- Questions will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="submit-quiz" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out">
+                Submit Quiz
+            </button>
+            <button id="reset-quiz" class="w-full sm:w-auto px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-300 ease-in-out">
+                Reset Quiz
+            </button>
+        </div>
+
+        <div id="score-area" class="mt-8 p-4 bg-blue-50 rounded-lg text-center font-medium text-blue-800 border border-blue-200 hidden">
+            <!-- Score and messages will appear here -->
+        </div>
+
+        <div id="maturity-report-area" class="mt-8 p-6 bg-gray-50 rounded-lg shadow-inner hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Maturity Level Report</h2>
+            <p class="text-center text-gray-600 mb-6">Based on your quiz performance, here's an assessment of the hypothetical maturity levels for different teams in incident response:</p>
+            <div id="maturity-levels-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Maturity levels will be displayed here -->
+            </div>
+            <p class="text-sm text-gray-500 mt-6 text-center">
+                Maturity Levels: 1 (Reactive/Basic Awareness) | 2 (Emerging/Limited Understanding) | 3 (Developing/Foundational) | 4 (Proficient/Solid Understanding) | 5 (Optimized/Expert)
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Array of quiz questions, adapted for Yes/No format from the CyberDrill scenario
+        // Each question now includes 'relevantRoles' for maturity assessment.
+        const quizQuestions = [
+            {
+                id: 'Q1',
+                question: "Upon receiving a high-severity alert for unusual outbound traffic and suspicious PowerShell activity, a SOC Tier 1 analyst's immediate next step should be to escalate the incident to the SOC Lead and the Tier 2 team.",
+                answer: "Yes",
+                rationale: "Correct. For high-severity alerts with multiple indicators, escalation to more experienced personnel is the immediate and appropriate action for a Tier 1 analyst, following standard incident response procedures.",
+                relevantRoles: ['SOC Analysts']
+            },
+            {
+                id: 'Q2',
+                question: "When compromised domain administrator credentials are used for lateral movement by a known ransomware group, the most critical action is to formally classify it as a Major Incident and activate the full Incident Response Plan.",
+                answer: "Yes",
+                rationale: "Correct. The severity of compromised admin credentials and a known ransomware threat necessitates a formal major incident declaration to trigger a full-scale, coordinated response from the Incident Response Team.",
+                relevantRoles: ['Incident Response Team', 'Executive Management']
+            },
+            {
+                id: 'Q3',
+                question: "When making a containment decision as ransomware spreads, executive management primarily evaluates the risk of further data loss and system damage versus the operational impact of isolating or shutting down critical business systems.",
+                answer: "Yes",
+                rationale: "Correct. The core trade-off for executive management in containment is balancing the risk of ongoing technical damage against the unavoidable business disruption caused by isolation or shutdown.",
+                relevantRoles: ['Executive Management']
+            },
+            {
+                id: 'Q4',
+                question: "The most important principle for external communication during an incident, especially with regulators and media, is to ensure consistency, accuracy, and coordination through a single, authorized channel.",
+                answer: "Yes",
+                rationale: "Correct. Coordinated, consistent, and accurate communication is paramount for PR/Communications and Legal & Compliance to maintain trust, manage reputation, and meet regulatory obligations during a crisis.",
+                relevantRoles: ['Legal & Compliance', 'PR/Communications']
+            },
+            {
+                id: 'Q5',
+                question: "Before restoring a core banking system database from backup, it is crucial to first calculate the total data loss based on the Recovery Point Objective (RPO).",
+                answer: "No",
+                rationale: "Incorrect. The crucial step before restoration is to validate the integrity of backups and ensure they are free from malware to prevent re-infection. This is a vital task for the Incident Response Team during recovery.",
+                relevantRoles: ['Incident Response Team']
+            },
+            {
+                id: 'Q6',
+                question: "Using PowerShell (T1059.001) for execution and enumerating network shares (T1083) primarily fall under the 'Initial Access' and 'Persistence' categories of MITRE ATT&CK.",
+                answer: "No",
+                rationale: "Incorrect. PowerShell execution (T1059.001) is an 'Execution' technique, and enumerating network shares (T1083) is a 'Discovery' technique. They are not primarily 'Initial Access' or 'Persistence' in this context.",
+                relevantRoles: [] // No direct role for maturity, general knowledge question
+            },
+            {
+                id: 'Q7',
+                question: "During the containment phase, the IT Operations Manager is ultimately responsible for the final decision on whether to isolate or shut down critical systems.",
+                answer: "No",
+                rationale: "Incorrect. Due to the significant business impact, the ultimate responsibility for deciding to isolate or shut down critical systems rests with Executive Management, with input from IT Operations.",
+                relevantRoles: ['IT Operations', 'Executive Management']
+            },
+            {
+                id: 'Q8',
+                question: "The need for pre-approved communication templates for customers and regulators primarily falls under the 'Technology' pillar of cybersecurity.",
+                answer: "No",
+                rationale: "Incorrect. Pre-approved communication templates are a key component of a defined and repeatable 'Process' for incident communication, not primarily 'Technology'.",
+                relevantRoles: ['Legal & Compliance', 'PR/Communications'] // Indirectly relevant to their processes
+            },
+            {
+                id: 'Q9',
+                question: "Validating the Incident Response Plan (IRP) in a tabletop exercise primarily means obtaining executive board approval for the IRP for the first time.",
+                answer: "No",
+                rationale: "Incorrect. Validating an IRP in an exercise means assessing its practical effectiveness, identifying gaps, and ensuring it covers necessary steps for complex scenarios, not obtaining initial approval.",
+                relevantRoles: ['Executive Management', 'Incident Response Team'] // Both are involved in IRP validation
+            },
+            {
+                id: 'Q10',
+                question: "The ultimate goal of a post-incident review (PIR) in the 'Lessons Learned' phase is to assign blame for any mistakes made during the incident response.",
+                answer: "No",
+                rationale: "Incorrect. The ultimate goal of a PIR is to identify actionable improvements across people, processes, and technology to enhance future security posture and prevent recurrence, not to assign blame.",
+                relevantRoles: ['Executive Management', 'Incident Response Team', 'IT Operations'] // All contribute to lessons learned
+            }
+        ];
+
+        // Store user answers and their correctness
+        let userAnswers = {};
+        // Flag to prevent further interaction after submitting
+        let quizSubmitted = false;
+
+        // Get references to DOM elements
+        const quizTableBody = document.getElementById('quiz-table-body');
+        const submitQuizBtn = document.getElementById('submit-quiz');
+        const resetQuizBtn = document.getElementById('reset-quiz');
+        const scoreArea = document.getElementById('score-area');
+        const maturityReportArea = document.getElementById('maturity-report-area');
+        const maturityLevelsList = document.getElementById('maturity-levels-list');
+
+
+        /**
+         * Renders the quiz questions into the table.
+         * Dynamically creates table rows and cells for each question.
+         */
+        function renderQuiz() {
+            quizTableBody.innerHTML = ''; // Clear previous questions
+            userAnswers = {}; // Reset user answers
+            quizSubmitted = false; // Reset submission flag
+            scoreArea.classList.add('hidden'); // Hide score area
+            maturityReportArea.classList.add('hidden'); // Hide maturity report area
+
+            quizQuestions.forEach((q, index) => {
+                const row = document.createElement('tr');
+                row.id = `question-row-${index}`; // Assign an ID to the row for easy access
+
+                // Question Cell
+                const questionCell = document.createElement('td');
+                questionCell.className = 'px-4 py-4 text-sm font-medium text-gray-900';
+                questionCell.textContent = `${index + 1}. ${q.question}`;
+                row.appendChild(questionCell);
+
+                // Answer Options Cell
+                const answerCell = document.createElement('td');
+                answerCell.className = 'px-4 py-4 whitespace-nowrap text-center text-sm';
+                answerCell.innerHTML = `
+                    <div class="flex space-x-2 justify-center" id="options-${index}">
+                        <button class="answer-btn px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out" data-question-id="${q.id}" data-question-index="${index}" data-answer="Yes">Yes</button>
+                        <button class="answer-btn px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out" data-question-id="${q.id}" data-question-index="${index}" data-answer="No">No</button>
+                    </div>
+                `;
+                row.appendChild(answerCell);
+
+                // Feedback Cell
+                const feedbackCell = document.createElement('td');
+                feedbackCell.className = 'px-4 py-4 text-sm text-gray-500';
+                feedbackCell.id = `feedback-${index}`;
+                row.appendChild(feedbackCell);
+
+                quizTableBody.appendChild(row);
+            });
+
+            // Attach event listeners to all newly created answer buttons
+            document.querySelectorAll('.answer-btn').forEach(button => {
+                button.addEventListener('click', handleAnswer);
+            });
+        }
+
+        /**
+         * Handles a user's answer selection.
+         * @param {Event} event - The click event object.
+         */
+        function handleAnswer(event) {
+            if (quizSubmitted) {
+                // If quiz is already submitted, prevent further answers
+                return;
+            }
+
+            const button = event.target;
+            const questionId = button.dataset.questionId;
+            const questionIndex = parseInt(button.dataset.questionIndex);
+            const userAnswer = button.dataset.answer;
+            const questionData = quizQuestions.find(q => q.id === questionId); // Find by ID for robustness
+
+            // Update UI for selected button
+            const optionsContainer = document.getElementById(`options-${questionIndex}`);
+            optionsContainer.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-200', 'border-blue-500', 'ring-2', 'ring-blue-500', 'text-blue-800');
+                btn.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-700');
+            });
+            button.classList.add('bg-blue-200', 'border-blue-500', 'ring-2', 'ring-blue-500', 'text-blue-800');
+            button.classList.remove('bg-gray-100', 'border-gray-300', 'text-gray-700');
+
+
+            // Determine if the answer is correct
+            const isCorrect = (userAnswer === questionData.answer);
+            userAnswers[questionId] = { // Store by ID
+                userAnswer: userAnswer,
+                isCorrect: isCorrect,
+                rationale: questionData.rationale,
+                correctAnswer: questionData.answer,
+                relevantRoles: questionData.relevantRoles // Store roles for maturity calculation
+            };
+
+            // Provide immediate feedback in the feedback cell
+            const feedbackCell = document.getElementById(`feedback-${questionIndex}`);
+            if (isCorrect) {
+                feedbackCell.innerHTML = '<span class="text-green-600 font-semibold flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></svg> Correct!</span>';
+                feedbackCell.classList.remove('text-red-600');
+                feedbackCell.classList.add('text-green-600');
+            } else {
+                feedbackCell.innerHTML = '<span class="text-red-600 font-semibold flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></svg> Incorrect.</span>';
+                feedbackCell.classList.remove('text-green-600');
+                feedbackCell.classList.add('text-red-600');
+            }
+        }
+
+        /**
+         * Calculates the score and displays results.
+         * Reveals the correct answers and rationales.
+         * Also calculates and displays the maturity report.
+         */
+        function submitQuiz() {
+            quizSubmitted = true; // Set flag to prevent further interaction
+
+            let correctCount = 0;
+            const roleScores = {
+                'SOC Analysts': { correct: 0, total: 0 },
+                'Incident Response Team': { correct: 0, total: 0 },
+                'IT Operations': { correct: 0, total: 0 },
+                'Legal & Compliance': { correct: 0, total: 0 },
+                'PR/Communications': { correct: 0, total: 0 },
+                'Executive Management': { correct: 0, total: 0 }
+            };
+
+            quizQuestions.forEach((q, index) => {
+                const feedbackCell = document.getElementById(`feedback-${index}`);
+                const userAnswerData = userAnswers[q.id]; // Get answer by question ID
+
+                // Disable buttons after submission
+                const optionsContainer = document.getElementById(`options-${index}`);
+                optionsContainer.querySelectorAll('.answer-btn').forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('cursor-not-allowed', 'opacity-60');
+                    btn.classList.remove('hover:bg-gray-200'); // Remove hover effect
+                });
+
+                if (userAnswerData && userAnswerData.isCorrect) {
+                    correctCount++;
+                } else if (!userAnswerData) {
+                    // User didn't answer this question
+                    feedbackCell.innerHTML = `<span class="text-gray-500 flex items-center"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 5a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1zm0 8a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></svg> Not answered.</span>`;
+                    feedbackCell.classList.remove('text-green-600', 'text-red-600');
+                    feedbackCell.classList.add('text-gray-500');
+                }
+
+                // Show full rationale after submission
+                feedbackCell.innerHTML += `<div class="mt-2 text-gray-700 text-xs sm:text-sm"><strong>Correct Answer:</strong> ${q.answer}. ${q.rationale}</div>`;
+                feedbackCell.classList.remove('text-green-600', 'text-red-600'); // Clear color from initial feedback
+
+
+                // --- Calculate scores for Maturity Report ---
+                if (userAnswerData) { // Only count if answered
+                    q.relevantRoles.forEach(role => {
+                        roleScores[role].total++;
+                        if (userAnswerData.isCorrect) {
+                            roleScores[role].correct++;
+                        }
+                    });
+                } else { // If not answered, still count towards total for maturity calc (as a miss)
+                     q.relevantRoles.forEach(role => {
+                        roleScores[role].total++;
+                    });
+                }
+            });
+
+            // Display final quiz score
+            scoreArea.classList.remove('hidden');
+            scoreArea.innerHTML = `<p class="text-xl sm:text-2xl">You scored ${correctCount} out of ${quizQuestions.length}!</p>`;
+
+            // --- Generate Maturity Report ---
+            maturityLevelsList.innerHTML = ''; // Clear previous report
+            maturityReportArea.classList.remove('hidden'); // Show maturity report area
+
+            const maturityMapping = (correct, total) => {
+                if (total === 0) return { level: 'N/A', description: 'Not assessed by this quiz.' };
+                const percentage = (correct / total) * 100;
+                let level = 1;
+                let description = 'Limited understanding; significant gaps.';
+                let cssClass = 'maturity-level-1';
+
+                if (percentage >= 80) { level = 5; description = 'Comprehensive and accurate understanding, expert level.'; cssClass = 'maturity-level-5'; }
+                else if (percentage >= 60) { level = 4; description = 'Strong knowledge and typically correct decisions, proficient level.'; cssClass = 'maturity-level-4'; }
+                else if (percentage >= 40) { level = 3; description = 'Understands core concepts but may struggle with nuances, foundational level.'; cssClass = 'maturity-level-3'; }
+                else if (percentage >= 20) { level = 2; description = 'Some awareness, but frequently makes incorrect decisions, emerging level.'; cssClass = 'maturity-level-2'; }
+
+                return { level, description, cssClass };
+            };
+
+            for (const role in roleScores) {
+                const { correct, total } = roleScores[role];
+                const { level, description, cssClass } = maturityMapping(correct, total);
+
+                const maturityCard = document.createElement('div');
+                maturityCard.className = `p-4 rounded-lg shadow-md border ${cssClass}`;
+                maturityCard.innerHTML = `
+                    <h3 class="font-bold text-lg mb-2">${role}</h3>
+                    <p class="text-sm"><strong>Maturity Level:</strong> <span class="font-semibold text-base">${level}</span></p>
+                    <p class="text-xs mt-1">${description}</p>
+                `;
+                maturityLevelsList.appendChild(maturityCard);
+            }
+        }
+
+        /**
+         * Resets the quiz to its initial state.
+         */
+        function resetQuiz() {
+            renderQuiz(); // Re-render the quiz to clear all selections and feedback
+            scoreArea.classList.add('hidden'); // Hide the score area
+            maturityReportArea.classList.add('hidden'); // Hide the maturity report
+            // Re-enable buttons if they were disabled by submission
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('cursor-not-allowed', 'opacity-60');
+                btn.classList.add('hover:bg-gray-200'); // Add hover effect back
+            });
+        }
+
+        // Event listeners for control buttons
+        submitQuizBtn.addEventListener('click', submitQuiz);
+        resetQuizBtn.addEventListener('click', resetQuiz);
+
+        // Initialize the quiz when the window loads
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>
